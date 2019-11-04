@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>纯js实现移动端触底分页</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        .root {
+            height: 1000px;
+            background-color: gray;
+            padding: 20px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="root" id="rootId">下拉页面到底部，触发监听函数</div>
+    <script>
+        window.addEventListener('scroll', function () {
+            let docBody = document.body;
+            let docElm = document.documentElement;
+            // 滚动条滚动时，顶部页面隐藏部分的高度
+            let scrollTop = docElm.scrollTop || docBody.scrollTop;
+            // 手机（设备）的可视区的高度
+            let windowHeight = docElm.clientHeight || docBody.clientHeight;
+            // 滚动条的总高度(元素滚动条内的页面内容高度)
+            let scrollHeight = docElm.scrollHeight || docBody.scrollHeight;
+
+            // 滚动条滚动到页面底部的条件
+            if (scrollTop + windowHeight === scrollHeight) {
+                alert('页面触底了')
+            }
+        })
+    </script>
+</body>
+</html>

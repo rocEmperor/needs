@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>自定义日历组件</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        .container-header-line {
+            height: 40px;
+        }
+        .container-header-item {
+            display: inline-block;
+            width: calc(100% / 7);
+            text-align: center;
+            box-sizing: border-box;
+            border: 1px solid #E1E1E1;
+            border-right: 0;
+            border-bottom: 0;
+            height: 100%;
+            position: relative;
+        }
+        .container-header-item:last-child {
+            border-right: 1px solid #E1E1E1;
+        }
+        .container-header-item span {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .calendar-body {
+            border-right: 1px solid #E1E1E1;
+            border-bottom: 1px solid #E1E1E1;
+        }
+        .calendar-body .calendar-body-item {
+            display: inline-block;
+            width: calc(100% / 7);
+            box-sizing: border-box;
+            text-align: center;
+            border: 1px solid #E1E1E1;
+            border-right: 0;
+            border-bottom: 0;
+            height: 60px;
+            vertical-align: top;
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+        }
+        .calendar-body .calendar-body-item-disable {
+            cursor: not-allowed;
+            color: rgba(0, 0, 0, 0.25);
+        }
+        .calendar-body .calendar-body-item:hover {
+            background-color: #E6F7FF;
+        }
+        .calendar-body .calendar-body-item-disable:hover {
+            background-color: #ffffff;
+        }
+        .calendar-body .calendar-body-item span {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+        }
+        .calendar-body .calendar-body-item .lunar {
+            font-size: 12px;
+        }
+        .calendar-body .calendar-body-item-active {
+            background-color: #E6F7FF;
+        }
+        .calendar-body .calendar-body-item-active span {
+            display: inline-block;
+            color: #1890ff;
+        }   
+        .calendar-choice-date {
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .calendar-choice-date .choice-content {
+            display: inline-block;
+            padding: 6px 40px;
+            border-radius: 8px;
+            background-color: #23B988;
+            color: #ffffff;
+            cursor: pointer;
+            position: relative;
+        }
+        .calendar-choice-date .choice-content::before {
+            content: '';
+            position: absolute;
+            left: -40px;
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-right: 10px solid #23B988;
+            border-bottom: 10px solid transparent;
+            cursor: pointer;
+        }
+        .calendar-choice-date .choice-content::after {
+            content: '';
+            position: absolute;
+            right: -40px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid #23B988;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            cursor: pointer;
+        }
+        .calendar-choice-date .choice-content .icon {
+            margin-left: 16px;
+            display: inline-block;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid #ffffff;
+        }
+    </style>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+    <script src="./dateToggle.js"></script>
+</head>
+<body>
+    <div id="table-container" style="margin: 50px 200px;"></div>
+    <div id="table-container-1" style="margin: 50px 100px;"></div>
+    <script>
+        class Calendar {
+            container = undefined // 日历容器
+            weekList = [ '周日', '周一', '周二', '周三', '周四', '周五', '周六' ] // 星期表头
+            today = undefined // 当前日期
+            y = undefined // 年份
+            m = undefined // 月份
+            d = undefined // 日
+            days_per_month = undefined // 储存月份的数组
+            firstDay = undefined // 当月的第一天
+            lastDay = undefined // 当月的最后一天
+            firstOfWeek = undefined // 第一天对应的星期
+            lastOfWeek = undefined // 最后一天对应的星期
+            key = undefined // 当前单例对应的唯一key
+            onClick = undefined // 选择日期后的回调
+
+            constructor (props) {
+                let { container, date, onClick } = props;
+                if (!container) {
+                    console.error('new Calendar()时必须传入有效的container');
+                    return false;
+                }
+                this.container = container;
+                this.today = date ? new Date(date) : new Date();
+                this.y = this.today.getFullYear();
+                this.m = this.today.getMonth();
+                this.d = this.today.getDate();
+                this.days_per_month = new Array(31, 28 + this.isLeap(this.y), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
+                this.firstDay = new Date(this.y, this.m , 1);
+                this.lastDay = new Date(this.y, this.m , this.days_per_month[this.m]);
+                this.firstOfWeek = this.firstDay.getDay();
+                this.lastOfWeek = this.lastDay.getDay();
+                this.key = Math.ceil(Math.random() * 100000);
+                this.onClick = onClick ? onClick.bind(this) : undefined;
+
+                // 数据源已经齐全 开始渲染页面
+                // 渲染table 表头
+                this.createHeader(this.weekList);
+                // 渲染日历
+                this.createContent();
+                // 绘制日历刷选器
+                this.createChoice();
+                // 绑定事件
+                this.addListeners();
+            }
+
+            // 渲染table 表头
+            createHeader (list) {
+                if (!list || Object.prototype.toString.call(list) != '[object Array]') {
+                    return false;
+                }   
+                let headerLine = document.createElement('div');
+                $(headerLine).addClass(`container-header-line container-header-line-${this.key}`);
+                list.forEach(item => {
+                    let headerItem = document.createElement('div');
+                    $(headerItem).addClass('container-header-item');
+                    $(headerItem).html(`<span>${item}</span>`);
+                    $(headerLine).append(headerItem);
+                });
+                $(this.container).append(headerLine);
+            }
+
+            // 渲染日历
+            createContent () {
+                let { days_per_month, firstOfWeek, lastOfWeek, m, d, y } = this;
+                let calendarBody = document.createElement('div');
+                $(calendarBody).addClass(`calendar-body calendar-body-${this.key}`);
+                let souce = [];
+                for (let i = 1; i <= days_per_month[m]; i++) {
+                    souce.push(i);
+                } 
+                for (let i = 0; i < firstOfWeek; i++) {
+                    souce.unshift(`${days_per_month[m - 1] - i}-disable`);
+                }
+                for (let i = 1; i <= 6 - lastOfWeek; i++) {
+                    souce.push(`${i}-disable`);
+                }
+                souce.forEach(item => {
+                    let calendarBodyItem = document.createElement('div');
+                    if (item.indexOf && item.indexOf('disable') !== -1) {
+                        item = item.split('-')[0];
+                        $(calendarBodyItem).addClass('calendar-body-item-disable');
+                    }
+                    $(calendarBodyItem).addClass(`calendar-body-item calendar-body-item-${this.key}`);
+                    $(calendarBodyItem).html(`<span>${item}<p class="lunar">${sloarToLunar(y, m + 1, item).lunarDay}</p></span>`);
+                    $(calendarBodyItem).attr('data-value', item);
+                    if (d == item) { // 当天高亮
+                        $(calendarBodyItem).addClass('calendar-body-item-active');
+                    }
+                    $(calendarBody).append(calendarBodyItem);
+                })
+                $(this.container).append(calendarBody);
+            }
+
+            // 绑定事件
+            addListeners () {
+                let _th = this;
+                let targetClass = `.calendar-body-${_th.key}`;
+                // 选择日期
+                $(targetClass).on('click', '.calendar-body-item', function () {
+                    let className = $(this).attr('class');
+                    let value = $(this).attr('data-value');
+                    if (className.indexOf('disable') != -1) {
+                        return false;
+                    }
+                    $(`.calendar-body-item-${_th.key}`).removeClass('calendar-body-item-active');
+                    $(this).addClass('calendar-body-item-active');
+                    _th.onClick && _th.onClick({
+                        date: `${_th.y}-${_th.m + 1}-${value}`
+                    });
+                })
+            }
+
+            // 绘制日历刷选器
+            createChoice () {
+                let choice = document.createElement('div');
+                $(choice).addClass(`calendar-choice-date calendar-
+                choice-date-${this.key}`);
+                $(choice).html(
+                    `<div class="choice-content">
+                        <span class="current-date">${this.y}年${this.m + 1}月</span>
+                        <span class="icon"></span>
+                    </div>`
+                )
+                &(this.container).prepend(choice);
+            }
+
+            // 判断当前年份是否是闰年（闰年2月份29天，平年2月份只有28天）
+            isLeap (year) {
+                return year % 4 == 0 ? (year % 100 != 0 ? 1 : (year % 400 == 0 ? 1 : 0)) : 0;
+            }
+        }
+
+        // demo1
+        new Calendar({
+            container: document.getElementById('table-container'),
+            onClick: (date) => {
+                console.log(date, 'choice')
+            }
+        })
+        // demo2
+        new Calendar({
+            container: document.getElementById('table-container-1'),
+            date: '2016-02-25',
+            onClick: (date) => {
+                console.log(date, 'choice')
+            }
+        })
+    </script>
+</body>
+</html>

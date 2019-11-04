@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>页面弹层</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        .btn {
+            padding: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+        .seat {
+            color: #ffffff;
+            text-align: center;
+        }
+        .seat img {
+            width: 100%;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, .5);
+        }
+        .modal-active {
+            display: block;
+        }
+        .modal-container {
+            width: 300px;
+            background-color: #ffffff;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .modal-header {
+            padding: 10px 0;
+            font-size: 20px;
+            font-weight: bold;
+            padding-left: 16px;
+            border-bottom: 1px solid #000;
+        }
+        .modal-header .close {
+            float: right;
+            margin-right: 16px;
+        }
+        .modal-content {
+            min-height: 130px;
+            padding: 16px;
+            background-color: antiquewhite;;
+            box-sizing: border-box;
+        }
+        .modal-footer div {
+            display: inline-block;
+            width: 50%;
+            text-align: center;
+            box-sizing: border-box;
+            line-height: 40px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .modal-footer .confirm {
+            color: #ffffff;
+            background-color: blue;
+        }
+    </style>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+</head>
+<body>
+    <div class="btn" id="btnId">点击出现modal弹层</div>
+    <div class="seat">
+        <img src="http://pic22.nipic.com/20120629/9363864_163739336188_2.jpg" alt="">
+        <img src="https://b-ssl.duitang.com/uploads/item/201208/30/20120830173930_PBfJE.jpeg" alt="">
+        <img src="http://pic49.nipic.com/file/20141007/1369025_135328216000_2.jpg" alt="">
+    </div>
+    <div class="modal" id="modal" data-show="0">
+        <div class="modal-container">
+            <div class="modal-header">
+                我是标题
+                <span class="close">✖</span>
+            </div>
+            <div class="modal-content">
+                我是内容区域
+            </div>
+            <div class="modal-footer">
+                <div class="cencel">取消</div><div class="confirm">确认</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // 控制modal是否显示及响应显示状态下的其他设置同步
+        function toggltModalStatus () {
+            let statusObj = {
+                '0': 'block',
+                '1': 'none'
+            }
+            let show = $('#modal').attr('data-show');
+            $('#modal').css({ display: statusObj[show] });
+            $('#modal').attr('data-show', show === '0' ? '1' : '0');
+            if (show === '0') { // 弹层显示 页面禁止滚动
+                $('html').css({ overflow: 'hidden' })
+            } else {
+                $('html').css({ overflow: 'auto' })
+            }
+        }
+        // 点击按钮，显示modal弹层
+        $('#btnId').click(toggltModalStatus);
+        // 点击取消，确认，modal右上角close Icon，隐藏modal弹层
+        $('.cencel').click(toggltModalStatus);
+        $('.confirm').click(toggltModalStatus);
+        $('.close').click(toggltModalStatus);
+    </script>
+</body>
+</html>

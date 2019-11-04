@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>自定义滚动条</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        /* -------------- scroll 组件 css --------------- */
+        .scroll-container {
+            overflow: hidden;
+            position: relative;
+            display: inline-block;
+            padding-right: 8px;
+        }
+        .scroll-bar-container {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            right: 0;
+            width: 8px;
+            background-color: #EEEEEE;
+        }
+        .scroll-bar-container .scroll-bar {
+            background-color: #525252;
+            border-radius: 8px;
+            cursor: pointer;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+        }
+        .scroll-bar-container .scroll-bar:hover {
+            opacity: .8;
+        }
+        /* -------------- scroll 组件 css --------------- */
+
+        /* -------------- demo css --------------- */
+        .content {
+            height: 500px;  
+            line-height: 500px;
+            width: 300px;
+            user-select: none;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        img {
+            width: 300px;
+            user-select: none;
+        }
+        .content1 {
+            background-color: blanchedalmond;
+        }
+        .content2 {
+            background-color: greenyellow;
+        }
+        .content3 {
+            background-color: hotpink;
+        }
+        .img-b {
+            display: inline-block;
+            height: 300px;
+            width: 300px;
+            background: url('http://pic22.nipic.com/20120629/9363864_163739336188_2.jpg') no-repeat;
+            background-size: 100% 100%;
+        }
+        /* -------------- demo css --------------- */
+    </style>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdn.bootcss.com/jquery-mousewheel/3.1.13/jquery.mousewheel.js"></script>
+</head>
+<body class="root">
+    <div class="scroll" id="scroll-box">
+        <!-- <img src="http://pic22.nipic.com/20120629/9363864_163739336188_2.jpg" alt="">
+        <img src="https://b-ssl.duitang.com/uploads/item/201208/30/20120830173930_PBfJE.jpeg" alt="">
+        <img src="http://pic49.nipic.com/file/20141007/1369025_135328216000_2.jpg" alt=""> -->
+        <div class="content content1">demo1-内容1</div>
+        <div class="content content2">demo1-内容2</div>
+        <div class="img-b"></div>
+        <div class="content content3">demo1-内容3</div>
+    </div>
+    <div style="height: 20px"></div>
+    <div class="scroll" id="scroll-box-two">
+        <!-- <img src="http://pic22.nipic.com/20120629/9363864_163739336188_2.jpg" alt="">
+        <img src="https://b-ssl.duitang.com/uploads/item/201208/30/20120830173930_PBfJE.jpeg" alt="">
+        <img src="http://pic49.nipic.com/file/20141007/1369025_135328216000_2.jpg" alt=""> -->
+        <div class="content content2">demo2-内容2</div>
+        <div class="content content3">demo2-内容3</div>
+    </div>
+    
+    <script>
+        class Scroll {
+            isMouseDown = false // 标识是否在拖拽滚动条
+            mouseStart = 0 // 滚动开始鼠标对应的点击起始高度
+            mouseEnd = 0 // 滚动结束鼠标对应的点击起始高度
+            targetId = undefined // 目标作用元素id
+            targetDom = undefined // 目标作用元素
+            targetH = 0 // 目标作用元素高度
+            containerDom = undefined // scroll组件最外层容器
+            containerH = 0 // scroll组件最外层容器高度，可修改
+            constructor (props) {
+                // props 属性说明
+                // 1. id param {String} 必填 目标作用元素id
+                // 2. height param {Number} 选填 配置scroll容器高度
+                // 3. width param {Number} 选填 配置scroll容器宽度
+                if (!props) {
+                    console.error('new Scroll()时，请传入有效参数')
+                    return false;
+                }
+                let type = Object.prototype.toString.call(props);
+                if (type === '[object Object]') {
+                    let { id } = props;
+                    if (id) {
+                        this.targetId = id;
+                        this.scrollInit($(`#${id}`), props);
+                    } else {
+                        console.error('id为必填项，请传入有效id')
+                    }
+                }
+            }
+            scrollInit (target, option) {
+                // 给目标元素包裹一层容器，并动态生成滚动条相关dom
+                let scrollBox = document.createElement('div');
+                let bar = document.createElement('div');
+                let { targetId } = this;
+                $(scrollBox).addClass(`scroll-container scroll-container-${targetId}`);
+                $(bar).addClass(`scroll-bar-container scroll-bar-container-${targetId}`);
+                $(bar).html(
+                    `<div class="scroll-bar scroll-bar-${targetId}"></div>`
+                )
+                // 设置 scrool 容器宽高
+                $(scrollBox).css({ 
+                    height: option.height ? `${option.height}px` : '300px',
+                    width: option.width ? `${option.width}px` : 'auto'  
+                })
+                $(scrollBox).append(bar);
+                target.replaceWith(scrollBox);
+                $(scrollBox).append(target[0]);
+                // 动态计算滚动条高度
+                this.calculate(target, scrollBox);
+                // 添加事件监听
+                this.addListeners();
+            }
+            // 计算滚动条高度
+            calculate (target, container) {
+                this.targetDom = target;
+                this.containerDom = $(container);
+                this.targetH = target.height();
+                this.containerH = $(container).height();
+                let { containerH, targetH, targetId } = this;
+                let barH = containerH / targetH * containerH;
+                $(`.scroll-bar-${targetId}`).height(`${barH}px`);
+            }
+            //  添加事件缉监听
+            addListeners () {
+                let _th = this;
+                let { targetId } = this;
+                let barCls = `.scroll-bar-${targetId}`;
+                let barContainerCls = `.scroll-bar-container-${targetId}`;
+                // 鼠标按下事件
+                $('body').on('mousedown', barCls, function (e) {
+                    _th.mouseStart = e.clientY;
+                    _th.isMouseDown = true;
+                })
+                // 鼠标移动事件
+                $('body').on('mousemove', function (e) {
+                    if (_th.isMouseDown) {
+                        let { targetH, containerH, containerDom, targetId } = _th;
+                        let y = e.clientY;
+                        let range = y - _th.mouseStart;
+                        let top = parseInt($(barCls).css('top'));
+                        let max = containerDom.height() - $(barCls).height();
+                        let current = top + range;
+                        let scale = targetH / containerH;
+
+                        if (current >= 0 && current <= max) {
+                            // 滚动条移动
+                            $(barCls).css({ top: `${current}px`});
+                            _th.mouseStart = y;    
+                            // 页面滚动
+                            containerDom.scrollTop(current * scale);
+                            $(barContainerCls).css({ top: `${current * scale}px`});
+                        } else {
+                            // 兼容鼠标快速拖动，页面掉帧的现象
+                            if (current < 0 && top !== 0) { // 鼠标快速向上拖动
+                                $(barCls).css({ top: `0px`});
+                                containerDom.scrollTop(0);
+                                $(barContainerCls).css({ top: `0px`});
+                            }
+                            if (current > max && top <= max) { // 鼠标快速向下拖动
+                                console.log(current, top, max)
+                                $(barCls).css({ top: `${max}px`});
+                                containerDom.scrollTop(max * scale);
+                                $(barContainerCls).css({ top: `${max * scale}px`});
+                            }
+                        }
+                    }
+                })
+                // 鼠标收起事件
+                $('body').on('mouseup', function (e) {
+                    _th.isMouseDown = false;
+                })
+                // 鼠标离开浏览器页面
+                $('html').on('mouseleave', function () {
+                    _th.isMouseDown = false;
+                })
+                // 鼠标进入浏览器页面
+                $('html').on('mouseenter', function () {
+                    _th.isMouseDown = false;
+                })
+                // 鼠标滚轮事件
+                $(`.scroll-container-${targetId}`).on('mousewheel', function (e, delta) {
+                    e.preventDefault();
+                    let { targetH, containerH, containerDom, targetId } = _th;
+                    let range = -e.deltaY * 5;
+                    let top = parseInt($(barCls).css('top'));
+                    let max = containerDom.height() - $(barCls).height();
+                    let current = top + range;
+                    let scale = targetH / containerH;
+
+                    if (current >= 0 && current <= max) {
+                        // 滚动条移动
+                        $(barCls).css({ top: `${current}px`});
+                        _th.mouseStart = e.deltaY;    
+                        // 页面滚动
+                        // 不带动画效果
+                        // containerDom.scrollTop(current * (targetH / containerH));
+                        // 带动画效果 
+                        containerDom.animate({ scrollTop: `${current * scale}px` }, 40); 
+                        // $(barContainerCls).css({ top: `${current * scale}px`})
+                        $(barContainerCls).animate({ top: `${current * scale}px`}, 40);
+                    }   
+                })
+            }
+        }
+
+        window.onload = function () {
+            new Scroll({ id: 'scroll-box', height: 200 }); // demo1
+            new Scroll({ id: 'scroll-box-two', height: 300 }); // demo2
+        }
+    </script>
+</body>
+</html>

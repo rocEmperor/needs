@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>移动端锚点跳转&标签吸顶&监听滚动</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        .banner {
+            height: 150px;
+            line-height: 150px;
+            text-align: center;
+            background-color: indianred;
+            color: #fff;
+        }
+        .tabList {
+            padding: 16px 10px;
+            /* position: sticky; */
+            top: 0;
+        }
+        .tabList .tab-item {
+            display: inline-block;
+            padding: 0 6px;
+            font-size: 16px;
+        }
+        .tabList .tab-item-active {
+            position: relative;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .tabList .tab-item-active::after {
+            width: calc(100% - 12px);
+            background: rgba(237, 23, 32, 0.7);
+            border-radius: 2px;
+            height: 4px;
+            content: "";
+            display: block;
+            position: absolute;
+            bottom: -4px;
+            z-index: -1;
+        }
+        .content {
+            height: 800px;
+            line-height: 600px;
+            text-align: center;
+            color: #ffF;
+        }
+        .content b {
+            color: darkslategrey;
+        }
+        #content1 {
+            background-color: khaki;
+        }
+        #content2 {
+            background-color: lightgrey;
+        }
+        #content3 {
+            background-color: lightseagreen;
+        }
+    </style>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+</head>
+<body>
+    <div class="banner">我是banner图片</div>
+    <div class="tabList" id="tabId">
+        <div class="tab-item tab-item-active" data-index="1" id="tab1">用户评价</div>
+        <div class="tab-item" data-index="2" id="tab2">图文详情</div>
+        <div class="tab-item" data-index="3" id="tab3">购买须知</div>
+    </div>
+    <div class="content" id="content1">
+        我是<b>用户评价</b>内容
+    </div>
+    <div class="content" id="content2">
+        我是<b>图文详情</b>内容
+    </div>
+    <div class="content" id="content3">
+        我是<b>购买须知</b>内容
+    </div>
+    <script>
+        let clickIng = false;
+        // tab点击事件
+        $('.tab-item').click(function () {
+            clickIng = true;
+            let index = $(this).attr('data-index');
+            makeTabActive($(this));
+            // 锚点跳转
+            $('#content' + index)[0].scrollIntoView();
+            setTimeout(function () {
+                clickIng = false;
+            }, 100)
+        })
+        // 通过id获取dom
+        function getById (id) {
+            return id ? document.getElementById(id) : null;
+        }
+        // 设置当前tab激活状态
+        function makeTabActive (target) {
+            $('.tab-item').removeClass('tab-item-active');
+            target.addClass('tab-item-active');
+        }
+        let offsetTop1 = getById('content1').offsetTop;
+        let offsetTop2 = getById('content2').offsetTop;
+        let offsetTop3 = getById('content3').offsetTop;
+        let tabListTop = getById('tabId').offsetTop;
+        // 监听页面滚动
+        window.addEventListener('scroll', function () {
+            // 当前页面滚动距离
+            let scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+
+            // tab 栏监听页面scroll，根据页面滚动距离判断是否吸顶，这样实现兼容性好，
+            // 使用 position: sticky 也可以实现，兼容性不是很好
+            if (scrollTop > tabListTop) {
+                $(getById('tabId')).css({ position: 'fixed'})
+            } else {
+                $(getById('tabId')).css({ position: 'relative'})
+            }
+            
+            // 判断是否是tab点击事件，如果是，则不执行下面的逻辑，否则就重复执行makeTabActive了
+            if (!clickIng) {
+                // 用户评价
+                if (scrollTop >= offsetTop1 && scrollTop <= offsetTop2) {
+                    makeTabActive($('#tab1'));
+                } 
+                // 图文详情
+                if (scrollTop >= offsetTop2 && scrollTop <= offsetTop3) {
+                    makeTabActive($('#tab2'));
+                } 
+                // 购买须知
+                if (scrollTop > offsetTop3) {
+                    makeTabActive($('#tab3'));
+                } 
+            }
+        })
+    </script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>微信小程序分享朋友圈功能</title>
+    <style>
+        .line {
+            margin-bottom: 20px;
+        }
+        .line label {
+            float: left;
+            font-weight: bold;
+        }
+        .line .text {
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <h3>微信小程序分享到朋友圈功能</h3>
+    <div class="line">
+        <label>需求背景：</label>
+        <div class="text">
+            微信小程序开发过程中，会遇到转发小程序链接到朋友圈；转发到聊天群；转发给某个联系人的需求，
+            类似转发功能，微信开发文档中是有提供给开发者相关的转发api，但是只支持转发到聊天群或者转发
+            给某个联系人，转到到朋友圈却是不支持的。因为微信认为如果可以直接转发到朋友圈，会存在恶习打
+            广告的风险。那么，如果在开发中遇到转发到朋友圈的需求，只能麻烦一点，需要把当前页面转成图片，
+            图片上有小程序的二维码入口，用户下载图片到本地后，然后手动发朋友圈才行。
+        </div>
+    </div>
+    <div class="line">
+        <label>实现分析：</label>
+        <div class="text">
+            在实现过程中，主要存在以下难点
+            1. 如何将页面转化为图片：
+            方案：微信开发文档提供了把canvas转化为本地临时文件的api，然后我们在将临时文件转化为
+                永久文件，download到用户手机本地相册即可；
+            2. 剩下的问题就是将页面通过canvas绘制出来：
+            方案：微信开发文档提供了大量的canvas api，足以提供开发者完成图片绘制。但是有一点需要注意，
+                canvas本身处理文本的能力十分弱，所以生成的图片最好是越简单越好，图片最好可以代替文字
+        </div>
+    </div>
+    <script>
+        // 以下是功能实现的代码 demo，使用mpvue 框架书写
+        /**
+            <template>
+                <div>
+                    <div>朋友圈分享demo</div>
+                    <div @click="download">下载图片</div>
+                    <div class="canvas-box">
+                        <canvas 
+                            canvas-id="shareCanvas" 
+                            :style="{width: '100%', height: windowHeight + 'px'}">
+                        </canvas>
+                    </div>
+                </div>
+            </template>  
+            <script>
+                export default {
+                    data () {
+                        return {    
+                            name: 'ddd',
+                            windowHeight: 300,
+                            windowWidth: wx.getSystemInfoSync().windowWidth
+                        }
+                    },
+                    onLoad (options) {
+                        this.drawImg();
+                    },
+                    methods: {
+                        drawImg () { // 通过canvas绘制最终分享的图片
+                            let _th = this;
+                            let { windowWidth } = this;
+                            let path = '/static/img/star-read-card.png';
+                            let ctx = wx.createCanvasContext('shareCanvas');
+
+                            // 绘制图片
+                            ctx.drawImage(path, windowWidth / 2 - 100, 50, 200, 200)
+
+                            // 绘制文字
+                            // ctx.setFillStyle('#dddddd')
+                            ctx.setFontSize(0.037 * windowWidth)
+                            ctx.setTextAlign('center')
+                            ctx.fillText('小明' + ' 正在参加疯狂红包活动正在参加疯狂红包活动正在参加疯狂红包活动', windowWidth / 2, 0.52 * windowWidth)
+                            ctx.draw();
+                        },
+                        download () { // 保存图片到本地相册
+                            let _th = this;
+                            let { windowWidth } = _th;
+                            wx.canvasToTempFilePath({ // 根据canvas生成本地临时文件
+                                x: 0,
+                                y: 0,
+                                width: windowWidth,
+                                height: 300,
+                                destWidth: windowWidth * 4,
+                                destHeight: 300 * 4,
+                                canvasId: 'shareCanvas',
+                                success: function (res) {
+                                    console.log('朋友圈分享图生成成功:' + res.tempFilePath)
+                                    wx.saveFile({ // 根据canvas生成的临时文件，转化为本地永久文件
+                                        tempFilePath: res.tempFilePath, 
+                                        success: (data) => {
+                                            let { savedFilePath } = data;
+                                            // 把本地生成的永久图片 下载到手机本地相册，方便使用
+                                            wx.saveImageToPhotosAlbum({ 
+                                                filePath: savedFilePath,
+                                                success: (res) => {
+                                                    wx.showToast({
+                                                        title: '图片成功保存到文件夹，请转发朋友圈',
+                                                        icon: 'success',
+                                                        duration: 1000
+                                                    })
+                                                }
+                                            })
+                                        },
+                                        complete: (data) => {
+                                            console.log(data, '图片save 完成')
+                                        }
+                                    })
+                                },
+                                fail: function (err) {
+                                    console.log('失败')
+                                }
+                            })
+                        }
+                    }
+                }
+            <script>    
+            <style lang="sass">
+
+            </style>
+        */
+    </script>
+</body>
+</html>
