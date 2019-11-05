@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>用canvas绘制一个页面</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <div style="margin: 20px;text-align: center;font-weight: 600;" id="title">
+      canvas绘制 参照设计稿 42-约定完成目标
+  </div>
+  <canvas id="mine-canvas"></canvas>
+  <script>
+    let typeList = [
+      { name: '吃水果', count: 1, id: 1 },
+      { name: '吃早饭', count: 8, id: 2 },
+      { name: '早点休息', count: 3, id: 3 },
+      { name: '不随手扔垃圾', count: 6, id: 4 }
+    ]
+    // 移动端适配
+    function toPx (count) {
+      return window.screen.width / 600 * count;
+    } 
+    // 绘制文字封装
+    function mineDrawText (ctx, font, text, x, y, textAlign) {
+      ctx.font = font ? `${font} sans-serif` : '20px sans-serif';
+      ctx.textAlign = textAlign || 'left';
+      ctx.fillText(text || '', x || 0, y || 0);
+    }
+    // 带有圆角矩形绘制封装
+    // x&y: 矩形左上角开始绘制坐标；w：矩形宽度；h：矩形高度；r：圆角半径
+    function drawFrame (ctx, x, y, w, h, r, strokeStyle, fillStyle) {
+      ctx.save();
+      if (w < 2 * r) { r = w / 2 }
+      if (h < 2 * r){ r = h / 2 }
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.strokeStyle = strokeStyle || '#fff';
+      ctx.stroke();
+      ctx.fillStyle = fillStyle || '#fff';
+      ctx.fill(); // 填充背景色
+      ctx.save();
+    }
+    // 绘制圆头直线封装
+    function drawRoundLine (ctx, startX, startY, endX, endY, w, strokeStyle) {
+      ctx.beginPath();
+      ctx.moveTo(startX || 1, startY || 1);
+      ctx.lineTo(endX || toPx(30), endY || toPx(30));
+      ctx.lineWidth = w || 2;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = strokeStyle || '#EEEEEE';
+      ctx.stroke();
+      ctx.save();
+    }
+    // 绘制打卡情况 item 行
+    function drawClock (ctx, item, x, y, index) {
+      ctx.drawImage(item.typeImg, x, y + toPx(index * 53), toPx(40), toPx(40));
+      mineDrawText(ctx, `${toPx(22)}px`, item.name, toPx(120), toPx(494 + index * 53.5));
+      mineDrawText(ctx, `${toPx(22)}px`, item.count, toPx(492), toPx(492 + index * 55));
+      ctx.drawImage(item.starImg, toPx(510), toPx(472 + index * 55), toPx(25.6), toPx(25.6));
+      ctx.save();
+    }
+    // 绘制页面
+    function draw (headImg, iconImg, timgImg) {
+      let canvas = document.getElementById('mine-canvas');
+      let ctx = canvas.getContext('2d');
+
+      canvas.width = toPx(600); // canvas宽度
+      canvas.height = toPx(1008); // canvas高度
+
+      // 绘制背景色
+      ctx.fillStyle = '#FE4772';
+      ctx.fillRect(0, 0, toPx(600), toPx(1008));
+
+      // 绘制上半部分绘制边框
+      drawFrame(ctx, toPx(32), toPx(16), toPx(536), toPx(692), toPx(16))
+      // 绘制下半部分绘制边框
+      drawFrame(ctx, toPx(32), toPx(732), toPx(536), toPx(244), toPx(16))
+
+      // 绘制头像
+      ctx.beginPath();
+      ctx.arc(toPx(88), toPx(72), toPx(24), toPx(0), Math.PI * 2);
+      // clip方法表示裁剪路径，使用时先绘制剪裁路径，执行clip()方法，再绘制的内容就在这个剪裁路中现
+      ctx.clip();
+      ctx.drawImage(headImg, toPx(64), toPx(48), toPx(48), toPx(48));
+      ctx.restore();
+      ctx.save();
+
+      // 绘制昵称
+      ctx.fillStyle = '#262626';
+      mineDrawText(ctx, `${toPx(24)}px`, '西门吹雪', toPx(128), toPx(80));
+      ctx.save();
+
+      // 绘制内容
+      mineDrawText(ctx, `bold ${toPx(36)}px`, '与亮亮的约定', toPx(300), toPx(179), 'center');
+      ctx.fillStyle = '#919191';
+      mineDrawText(ctx, `${toPx(20)}px`, '约定期限：2018-10-1~2018-10-20', toPx(300),toPx(223), 'center');
+      ctx.fillStyle = '#FE4772';
+      mineDrawText(ctx, `${toPx(24)}px`, '进行中', toPx(300), toPx(268), 'center');
+      ctx.fillStyle = '#262626';
+      mineDrawText(ctx, `${toPx(26)}px`, '约定奖励：游戏机', toPx(300), toPx(318),'center');
+      mineDrawText(ctx, `bold ${toPx(26)}px`, '目标', toPx(64), toPx(402));
+      mineDrawText(ctx, `bold ${toPx(26)}px`, '6/28', toPx(476), toPx(402));
+
+      // 进度条 --- 默认100%宽度条
+      drawRoundLine(ctx, toPx(64), toPx(433), toPx(536), toPx(433), toPx(8), '#EEEEEE');
+      // 进度条 --- 完成部分进度条
+      drawRoundLine(ctx, toPx(64), toPx(433), toPx(436), toPx(433), toPx(8), '#FE4772'); 
+
+      // 绘制打卡情况
+      typeList.forEach((item, index) => {
+        drawClock(ctx, item, toPx(64), toPx(465), index);
+      })
+
+      // 绘制下半部分内容
+      ctx.drawImage(iconImg, toPx(68), toPx(752), toPx(60), toPx(60));
+      mineDrawText(ctx, `bold ${toPx(26)}px`, '芸宝习惯', toPx(138), toPx(790));
+      ctx.fillStyle = '#817A7C';
+      mineDrawText(ctx, `${toPx(22)}px`, '健康习惯养成', toPx(80), toPx(856));
+      mineDrawText(ctx, `${toPx(22)}px`, '打卡记录美好生活', toPx(80), toPx(894));
+      mineDrawText(ctx, `${toPx(18)}px`, '长按或扫描二维码进入小程序', toPx(80), toPx(940));
+      ctx.drawImage(timgImg, toPx(358), toPx(770), toPx(160), toPx(160));
+      ctx.save();
+    }
+
+    window.onload = function () {
+      let loadNum = 0;
+      let typeImg = new Image();
+      let starImg = new Image();
+      let headImg = new Image();
+      let iconImg = new Image();
+      let timgImg = new Image();
+
+      typeImg.src = './imgs/type.jpg';
+      starImg.src = './imgs/star.png';
+      headImg.src = './imgs/head.jpg';
+      iconImg.src = './imgs/icon.jpeg';
+      timgImg.src = './imgs/timg.jpg';
+
+      // 添加事件监听
+      typeImg.onload = loadFn;
+      starImg.onload = loadFn;
+      headImg.onload = loadFn;
+      iconImg.onload = loadFn;
+      timgImg.onload = loadFn;
+
+      function loadFn () {
+        loadNum += 1;
+        isAllLoad();
+      }
+      // 监听图片是否全load加载完毕
+      function isAllLoad () {
+        if (loadNum == 5) {
+          typeList.forEach((item, index) => {
+            typeList[index].typeImg = typeImg;
+            typeList[index].starImg = starImg;
+          })
+          draw(headImg, iconImg, timgImg);
+        }
+      }
+      // 设置顶部title字号
+      let title = document.getElementById('title');
+      title.style.fontSize = `${toPx(28)}px`;
+    }
+  </script>
+</body>
+</html>
