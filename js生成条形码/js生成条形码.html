@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>js生成条形码</title>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+    <script src="./JsBarcode.all.js"></script>
+</head>
+<body>
+    <h3>JsBarcode 文档地址：https://www.npmjs.com/package/jsbarcode</h3>
+    <h3 style="border-bottom: 1px dashed #999999;padding-bottom: 15px;">
+        演示示例
+    </h3>
+    <svg id="barcode"></svg>
+    <!-- or -->
+    <canvas id="canvas"></canvas>
+    <!-- or -->
+    <img id="barcode-img"/>
+    <h3 style="border-bottom: 1px dashed #999999;padding-bottom: 15px;">
+        api文档
+    </h3>
+    <img src="./imgs/0.png" alt="">
+    <img src="./imgs/1.png" alt="">
+    <img src="./imgs/2.png" alt="">
+    <img src="./imgs/3.png" alt="">
+</body>
+<script>
+    JsBarcode("#barcode", "1236547896");
+    // or with jQuery
+    $("#barcode").JsBarcode("hi barcode!");
+
+    $("#canvas").JsBarcode("1236547896");
+
+    $("#barcode-img").JsBarcode("666888999");
+</script>
+</html>
