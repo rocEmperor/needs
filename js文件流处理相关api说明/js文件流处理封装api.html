@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>js文件流处理相关api说明</title>
+</head>
+<body>
+    <div>详细内容查看本html文件源码</div>
+    <canvas id="myCanvas" height="200" width="200"></canvas>
+    <img src="" alt="" id="img-id">
+    <canvas id="myCanvas1" height="200" width="200"></canvas>
+    <canvas id="myCanvas2" height="200" width="200"></canvas>
+</body>
+<script>
+    let canvas = document.getElementById("myCanvas");
+    let ctx = canvas.getContext("2d");
+    ctx.strokeStyle = "#0000ff";
+    ctx.strokeRect(20, 20, 150, 100);
+
+
+    // ------------- canvas转化为base64 -------------
+    function canvasToBase64 (target) {
+        return dataUrl = target.toDataURL('image/png');
+    }
+    // demo 
+    let img1 = document.getElementById('img-id');
+    img1.src = canvasToBase64(canvas);
+
+
+    // -------------- File对象，Blob对象转化为base64 ---------------
+    function fileBlobToBase64(target, callback) {
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            callback(e.target.result);
+        };
+        reader.readAsDataURL(target);
+    }
+    // demo
+    fileBlobToBase64(new Blob(['12345']), function (dataurl){
+        console.log(dataurl);
+    });
+    fileBlobToBase64(new File(['adrer'], 'fileN'), function (dataurl){
+        console.log(dataurl);
+    });
+
+
+    // -------------- base64转换为Blob对象、dataURL转换为File对象 ---------------
+    function base64ToBlob(dataurl) {
+        let arr = dataurl.split(',');
+        let mime = arr[0].match(/:(.*?);/)[1];
+        let bstr = window.atob(arr[1]);
+        let n = bstr.length;
+        let u8arr = new Uint8Array(n);
+        
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new Blob([ u8arr ], { type: mime });
+    }
+    function base64ToFile(dataurl, filename) {
+        let arr = dataurl.split(',');
+        let mime = arr[0].match(/:(.*?);/)[1];
+        let bstr = atob(arr[1]);
+        let n = bstr.length;
+        let u8arr = new Uint8Array(n);
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new File([ u8arr ], filename, { type: mime });
+    }
+    // demo
+    let blob = base64ToBlob('data:text/plain;base64,YWFhYWFhYQ==');
+    let file = base64ToFile('data:text/plain;base64,YWFhYWFhYQ==', 'test.txt');
+
+
+    // -------------- base64数据绘制到canvas ---------------
+    function base64ToCanvas (base64, target) {
+        let imgDom = new Image();
+        imgDom.onload = function (e) {
+            let canvas = document.getElementById("myCanvas1");
+            let ctx = canvas.getContext("2d");
+            target.drawImage(imgDom, 0, 0);
+        };
+        imgDom.src = base64;
+    }
+    // demo img元素绘制到canvas
+    let canvas1 = document.getElementById("myCanvas1");
+    let ctx1 = canvas1.getContext("2d");
+    base64ToCanvas(canvasToBase64(canvas), ctx1);
+
+
+    // -------------- File，Blob的图片文件数据绘制到canvas ---------------
+    // 利用上面的 fileBlobToBase64 函数，将File，Blob转化为base64，再调用base64ToCanvas
+    // 方法将base64通过new Image()转化为canvas
+    function fileBlobToCanvas (blob, target) {
+        fileBlobToBase64(blob, function (res) {
+            base64ToCanvas(res, target)
+        })
+    }
+    // demo
+    let canvas2 = document.getElementById("myCanvas2");
+    let ctx2 = canvas2.getContext("2d");
+    let base641 = canvasToBase64(canvas); // 先将canvas转化为base64
+    let blob1 = base64ToBlob(base641); // 再将base64转化为Blob
+    fileBlobToCanvas(blob1, ctx2);
+
+
+    // -------------- canvas转换为Blob对象 ---------------
+    function canvasToBlob (canvas) {
+        let base64 = canvasToBase64(canvas);
+        return res = base64ToBlob(base64);
+    }
+
+    // -------------- canvas转换为Blob对象并使用Ajax发送 ---------------
+    let reqBlob = canvasToBlob(canvas);
+    let formData = new FormData();
+    formData.append("image", reqBlob, "image.png");
+    let xhr = new XMLHttpRequest();
+    xhr.open('POST', 'http://127.0.0.1:2000/server', true);
+    xhr.send(formData);
+
+
+    // -------------- 将File，Blob生成图片储存到本地 ---------------
+    function saveImgFormFileBlob (blob) {
+        let Url = window.URL.createObjectURL(blob);
+        let a = document.createElement('a');
+        a.href = Url;
+        a.download = '将File||Blob生成图片储存到本地.png';
+        document.body.appendChild(a);
+        // 下载
+        a.click();
+        document.body.removeChild(a); // 下载结束后移除元素
+        window.URL.revokeObjectURL(Url); // 下载结束后释放掉内存内临时文件
+    }
+    // demo
+    let saveBlob = canvasToBlob(canvas);
+    saveImgFormFileBlob(saveBlob);
+
+</script>
+</html>
