@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>js手写签名</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        /* 清除&保存按钮 */
+        .scan-operate-box {
+            margin-top: 12px;
+            padding: 0 6px;
+            position: relative;
+            bottom: 60px;
+        }
+        .scan-operate-box > div {
+            line-height: 36px;
+            text-align: center;
+            color: #ffffff;
+            background-color: cadetblue;
+            font-size: 20px;
+            border-radius: 4px;
+            display: inline-block;
+            width: calc(50% - 12px);
+            box-sizing: border-box;
+            margin: 0 6px;
+        }
+    </style>
+    <!-- 保存文件相关工具类函数 -->
+    <script src="./util.js"></script>
+</head>
+<body>
+    <div id="scan-container" style="height: 70vh;"></div> 
+    <script>
+        class ScanFromCanvas {
+            container = undefined;
+            canvas = undefined;
+            ctx = undefined;
+            writeIng = false;
+            clearBtn = undefined;
+            saveBtn = undefined;
+            constructor (props) {
+                if (!props || Object.prototype.toString.call(props) !== '[object Object]') {
+                    console.error('new ScanFromCanvas props is invalid')
+                    return false;
+                }
+                if (!props.container) {
+                    console.error('container params is must be!')
+                    return false;
+                }
+                let { container } = props;
+                this.container = container;
+                this.canvas = document.createElement('canvas');
+                this.canvas.width = this.container.clientWidth;
+                this.canvas.height = this.container.clientHeight;
+                this.container.appendChild(this.canvas);
+                this.ctx = this.canvas.getContext('2d');
+                this.ctx.lineWidth = 1; // 线宽
+                this.ctx.strokeStyle = "#5F9EA0"; // 线颜色
+                this.ctx.lineCap = "round";
+                this.ctx.fillStyle = '#F1F1F1'; // 画布背景色
+                this.ctx.fillRect(0, 0, this.container.clientWidth, this.container.clientHeight);
+                // 添加事件监听
+                this.addListeners();
+                // 清除，保存按钮
+                this.createOperate();
+            }
+            getXYFormPhone (event) {
+                if (!event) { return {} }
+                return {
+                    X: event.changedTouches[0].pageX,
+                    Y: event.changedTouches[0].pageY
+                }
+            }
+            getXYFormPc (event) {
+                if (!event) { return {} }
+                return {
+                    X: event.pageX,
+                    Y: event.pageY
+                }
+            }
+            addListeners () {
+                // 移动端
+                this.canvas.addEventListener('touchstart', (e) =>  {
+                    let point = this.getXYFormPhone(e);
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(point.X, point.Y);
+                })
+                this.canvas.addEventListener('touchmove', (e) => {
+                    let point = this.getXYFormPhone(e);
+                    this.ctx.lineTo(point.X, point.Y);
+                    this.ctx.stroke();
+                })
+                this.canvas.addEventListener('touchend', (e) => {
+                    this.ctx.save();
+                })
+                // pc端
+                this.canvas.addEventListener('mousedown', (e) => {
+                    let point = this.getXYFormPc(e);
+                    this.writeIng = true;
+                    if (this.writeIng) {
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(point.X, point.Y);
+                    }
+                })
+                this.canvas.addEventListener('mousemove', (e) => {
+                    if (this.writeIng) {
+                        let point = this.getXYFormPc(e);
+                        this.ctx.lineTo(point.X, point.Y);
+                        this.ctx.stroke();
+                    }
+                })
+                document.addEventListener('mouseup', (e) => {
+                    this.ctx.save();
+                    this.writeIng = false;
+                })
+            }
+            createOperate () {
+                // 按钮容器
+                let operateBox = document.createElement('div');
+                operateBox.classList.add('scan-operate-box');
+                // 清除
+                this.clearBtn = document.createElement('div');
+                this.clearBtn.innerHTML = '清除';
+                this.clearBtn.id = 'clear-scan-operate';
+                // 保存
+                this.saveBtn = document.createElement('div');
+                this.saveBtn.innerHTML = '保存';
+                this.saveBtn.id = 'save-scan-operate';
+                operateBox.appendChild(this.clearBtn);
+                operateBox.appendChild(this.saveBtn);
+                this.container.appendChild(operateBox);
+                operateBox = null;
+                // 事件监听
+                this.btnListeners();
+            }
+            btnListeners () {
+                // 清除
+                this.clearBtn.addEventListener('click', () => {
+                    let { clientWidth, clientHeight } = this.container;
+                    this.ctx.clearRect(0, 0, clientWidth, clientHeight);
+                    this.ctx.fillRect(0, 0, clientWidth, clientHeight);
+                })
+                // 保存
+                this.saveBtn.addEventListener('click', () => {
+                    let base64 = canvasToBase64(this.canvas); // 1.将canvas转化为base64
+                    let blob = base64ToBlob(base64); // 2.将base64转化为blob二进制流
+                    saveImgFormFileBlob(blob, '签名.png'); // 3.将二进制流保存为本地图片
+                })
+            }
+        }
+        // demo
+        new ScanFromCanvas({
+            container: document.getElementById('scan-container')
+        })
+        
+    </script>
+</body>
+</html>
