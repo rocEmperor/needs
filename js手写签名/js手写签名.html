@@ -29,12 +29,34 @@
             box-sizing: border-box;
             margin: 0 6px;
         }
+        .note {
+            padding: 10px;
+            font-size: 14px;
+        }
+        .reason {
+            font-size: 12px;
+            background-color: #F0F0F0;
+            padding: 8px;
+        }
     </style>
     <!-- 保存文件相关工具类函数 -->
     <script src="./util.js"></script>
 </head>
 <body>
-    <div id="scan-container" style="height: 70vh;"></div> 
+    <div id="scan-container" style="height: 60vh;"></div> 
+    <div class="note">
+        <h4>注意：</h4>
+        <p>
+            在设置canvas的宽高时，不能使用css或者行内样式（style="***"）的形式，
+            要使用width或者canvas.width的形式，具体原因如下：
+        </p>
+        <p class="reason">
+            canvas是一张画布，就像一张图片那样，默认的图片大小事300*150，但是我们在css样式中设置
+            了canvas，就是把图片给拉伸变换了，于是我们不一样的图片。就像我们打开平时一张图片，
+            然后进行拉伸般，于是图片就变形。所以，画布的宽跟高，最好还是直接在canvas标签里面设置了，
+            这样一来，就直接改变了默认的画布宽跟高的值。
+        </p>
+    </div>
     <script>
         class ScanFromCanvas {
             container = undefined;
