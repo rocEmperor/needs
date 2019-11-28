@@ -1,0 +1,37 @@
+.preview-modal {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: #000000;
+    overflow-y: scroll; 
+    overflow-x: hidden;
+    white-space: nowrap;
+}
+.preview-modal-body {
+    display: inline-block;
+    height: 100%;
+    width: 100%;
+}
+.preview-modal .current-img {
+    width: 100%;
+    position: relative;
+    top: 50%;
+    transform: translate(0, -50%);
+    vertical-align: top;
+}
+.preview-img-box {
+    display: inline-block;
+    height: 100%;
+    width: 100%;
+    vertical-align: top;
+}
+.preview-count {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    color: #fff;
+    z-index: 100;
+}

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>图片预览</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        html {
+            height: 1000px;
+        }
+        .imgCls {
+            display: inline-block;
+            width: 100px;
+            height: 100px;
+            background-position: center;
+        }
+        .img {
+            background: url('./1.jpg') no-repeat;
+            background-size: 174.3% 100%;
+        }
+        .img1 {
+            background: url('./2.jpg') no-repeat;
+            background-size: 100% 100%;
+        }
+        .img2 {
+            background: url('./1.jpg') no-repeat;
+            background-size: 100% 100%;
+        }
+        .img3 {
+            background: url('./2.jpg') no-repeat;
+            background-size: 100% 100%;
+        }
+    </style>
+    <link rel="stylesheet" href="./index.css">
+    <script src="https://cdn.bootcss.com/zepto/1.0rc1/zepto.min.js"></script>
+    <script src="./index.es5.js"></script>
+</head>
+<body>
+    <div>
+        <div class="imgCls imgCls2 img" data-index="0"></div>
+        <div class="imgCls imgCls2 img1" data-index="1"></div>
+    </div>
+    <div>
+        <div class="imgCls imgCls1 img2" data-index="0"></div>
+        <div class="imgCls imgCls1 img3" data-index="1"></div>
+    </div>
+    <script>
+        // demo
+        $('.imgCls2').click((e) => {
+            let index = parseInt($(e.target).attr('data-index'));
+            new PreviewImg({
+                source: [ './1.jpg', './2.jpg', './1.jpg' ],
+                index: index
+            })
+        })
+        $('.imgCls1').click((e) => {
+            let index = parseInt($(e.target).attr('data-index'));
+            new PreviewImg({
+                source: [ './2.jpg', './1.jpg', './timg.jpg', './2.jpg'  ],
+                index: index
+            })
+        })
+    </script>
+</body>
+</html>
