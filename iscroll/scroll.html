@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+
+        <title>iScroll demo: barebone</title>
+        <script type="text/javascript" src="./iScroll/iscroll.js"></script>
+        <script type="text/javascript" src="./iScroll/demoUtils.js"></script>
+        <script type="text/javascript">
+            var myScroll;
+            function loaded () {
+                myScroll = new IScroll('#wrapper', {
+                    scrollX: true,
+                    scrollY: false
+                });
+            }
+            document.addEventListener(
+                'touchmove', 
+                function (e) { 
+                    e.preventDefault(); 
+                }, 
+                isPassive() ? {
+                    capture: false,
+                    passive: false
+                } : false
+            )
+        </script>
+        <style>
+            #wrapper {
+                position: relative;
+                width: 300px;
+                height: 40px;
+                overflow: hidden;
+
+                /* Prevent native touch events on Windows */
+                -ms-touch-action: none;
+
+                /* Prevent the callout on tap-hold and text selection */
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+
+                /* Prevent text resize on orientation change, useful for web-apps */
+                -webkit-text-size-adjust: none;
+                -moz-text-size-adjust: none;
+                -ms-text-size-adjust: none;
+                -o-text-size-adjust: none;
+                text-size-adjust: none;
+            }
+
+            #scroller {
+                position: absolute;
+                white-space: nowrap;
+                /* Prevent elements to be highlighted on tap */
+                -webkit-tap-highlight-color: rgba(0,0,0,0);
+
+                /* Put the scroller into the HW Compositing layer right from the start */
+                -webkit-transform: translateZ(0);
+                -moz-transform: translateZ(0);
+                -ms-transform: translateZ(0);
+                -o-transform: translateZ(0);
+                transform: translateZ(0);
+            }
+        </style>
+
+    </head>
+    <body onload="loaded()">
+        <div id="wrapper">
+            <div id="scroller">
+                <p>
+                    炎黄子孙，龙的传人，是生来烙在心间的印记；有匪君子，温润如玉，是成长时谨记于脑海的印记，
+                    可每当抬头看到天上一轮皎月，图腾的鲜血会激荡，天涯共此时的诗句开始回响，那时展现的是我的爱
+                    国之情。
+                </p>
+            </div>
+        </div>
+        <div style="color: cadetblue; margin-top: 20px;">左右滑动查看效果</div>
+    </body>
+</html>
