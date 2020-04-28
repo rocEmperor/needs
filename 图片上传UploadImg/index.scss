@@ -1,0 +1,19 @@
+.upLoad-img-container {
+    display: inline-block;
+    .upload-button {
+        display: inline-block;
+        height: 200px;
+        width: 200px;
+        background: url('./images/add-icon.png') no-repeat;
+        background-size: 100% 100%;
+        position: relative;
+        .upload-ipt {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            opacity: 0;
+        }
+    }
+}
