@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+	</head>
+	<body>
+		<style>
+			* { 
+                padding: 0;
+                margin: 0;
+            }
+			video {
+                background: gray;
+            }
+		</style>
+		<button id="open">开启摄像头</button>
+		<video id="video" width="500px" height="300px" autoplay="autoplay"></video>
+		<button id="recorder">录制</button>
+		<button id="close">关闭摄像头</button>
+		<button id="ka">截图</button>
+		<script type="text/javascript" src="./static.js"></script>
+		<script>
+			var u = new U();
+			var m = new media({video: "#video", uploadURI: "123", params: {}});
+			u.ele("#open").onclick = function() {
+				m.init();
+			}
+			u.ele("#ka").onclick=function(){
+				var src=m.screenshot();
+				var img=document.createElement("img");
+				img.src=src;
+				document.getElementsByTagName("body")[0].appendChild(img);
+			}
+			u.ele("#recorder").onclick = function() {
+				if(m.recorderState==false){
+					m.startRecorder();
+				}else if(m.recorderState==true){
+					m.stopRecorder();
+				}
+			}
+			u.ele("#close").onclick = function() {
+				m.closeMedia();
+			}
+		</script>
+	</body>
+</html>
